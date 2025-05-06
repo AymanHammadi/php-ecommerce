@@ -1,0 +1,21 @@
+# IDE config
+.idea/
+
+# Logs and temp files
+*.log
+*.tmp
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Uploads
+src/data/uploads/
+
+# Map files
+src/**/css/*.map
+
+# Environment and config
+.env
+.env.local
+.env.*.local
