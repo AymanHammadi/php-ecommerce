@@ -1,6 +1,8 @@
 <?php
-// Configuration and Directory Paths
+// Database Connection
+include __DIR__ . '/../includes/database.php';
 
-$tpl = "includes/templates/";  // Template Directory
-$css = "assets/css/";          // CSS Directory
-$js = "assets/js/";            // JS Directory
+// Paths
+$templates = __DIR__ . '/includes/templates/'; // Template directory
+$css = 'assets/css/';                          // CSS directory
+$js = 'assets/js/';                            // JavaScript directory

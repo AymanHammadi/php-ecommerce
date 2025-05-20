@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: php-apache
     ports:
-      - "9000:80"
+      - "3000:80"
     volumes:
       - ./src:/var/www/html
       - ./apache/default.conf:/etc/apache2/sites-available/000-default.conf
@@ -27,7 +27,7 @@ services:
     image: phpmyadmin/phpmyadmin
     container_name: phpmyadmin
     ports:
-      - "8081:80"
+      - "3001:80"
     environment:
       PMA_HOST: db
       MYSQL_ROOT_PASSWORD: rootpass
