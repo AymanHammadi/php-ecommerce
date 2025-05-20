@@ -1,5 +1,8 @@
 <?php
-session_start();
+// Only start session if headers haven't been sent yet
+if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+    session_start();
+}
 
 function isLoggedIn()
 {
@@ -13,9 +16,9 @@ function isAdmin()
 
 function requireLogin()
 {
+
     if (!isLoggedIn()) {
-        header('Location: index.php');
-        exit;
+        redirect('index.php');
     }
 }
 
@@ -23,7 +26,7 @@ function requireAdmin()
 {
     requireLogin();
     if (!isAdmin()) {
-        echo "Access denied: Admins only.";
-        exit;
+        $_SESSION['error'] = 'access_denied_not_admin';
+        redirect('index.php');
     }
 }

@@ -1,6 +1,4 @@
 <?php
-echo "This text is from src/includes/functions/lang file \n";
-
 // Only start session if headers haven't been sent yet
 if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
     session_start();
@@ -53,6 +51,12 @@ function t($key)
     return $value;
 }
 
-// Initialize language - ensure we use the session language if available
+// Check for language switch request and update session accordingly
+if (isset($_GET['lang'])) {
+    $_SESSION['lang'] = $_GET['lang'];
+}
+
+
+// Initialize language
 $langCode = isset($_SESSION['lang']) ? $_SESSION['lang'] : 'en';
 load_language($langCode);
