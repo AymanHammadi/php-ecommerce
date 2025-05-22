@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // Sanitize and validate input
 $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
-$password = isset($_POST['password']) ? $_POST['password'] : '';
+$password = $_POST['password'] ?? '';
 
 if (!$email || !$password) {
     $_SESSION['error'] = 'invalid_email_or_password';

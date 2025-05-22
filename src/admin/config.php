@@ -8,6 +8,7 @@ $basePath = __DIR__;
 
 // Directory Paths
 $templates = $basePath . '/includes/templates/';
+$components = $basePath . '/includes/templates/components/';
 $functions = $basePath . '/includes/functions/';
 $assetsPath = $basePath . '/assets/';
 

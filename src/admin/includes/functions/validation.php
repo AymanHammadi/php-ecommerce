@@ -23,7 +23,19 @@ function validate(array $data, array $rules, array $uniqueChecks = [], PDO $pdo 
                 if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
                     $errors[$field][] = 'Invalid email format.';
                 }
+            } elseif ($field === 'password') {
+                if (in_array('required', $fieldRules) && $value === '') {
+                    $errors[$field][] = 'Password is required.';
+                } else {
+                    if (strlen($value) < 6) {
+                        $errors[$field][] = 'Password must be at least 6 characters.';
+                    }
+                    if (!preg_match('/[A-Z]/', $value) || !preg_match('/[a-z]/', $value) || !preg_match('/[0-9]/', $value)) {
+                        $errors[$field][] = 'Password must include upper, lower case letters and a number.';
+                    }
+                }
             }
+
         }
     }
 

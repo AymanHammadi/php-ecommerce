@@ -43,6 +43,7 @@ return [
             'update_failed' => 'Failed to update user.',
             'fields' => [
                 'username' => 'Username',
+                'password' => 'Password',
                 'email' => 'Email',
                 'full_name' => 'Full Name',
                 'group_id' => 'Group',
