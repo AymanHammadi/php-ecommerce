@@ -7,7 +7,7 @@ $pageTitle = 'Login';   // Set page title for header
 
 // Redirect logged-in admins to dashboard
 if (isLoggedIn() && isAdmin()) {
-    redirect('dashboard.php');
+    redirect('dashboard');
 }
 
 load_language();        // Load language strings

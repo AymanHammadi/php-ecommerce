@@ -11,23 +11,23 @@
         <div class="collapse navbar-collapse" id="navbarContent">
             <!-- Nav Links -->
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link " href="/"><?= t('admin.nav.home') ?></a></li>
+                <li class="nav-item"><a class="nav-link " href="/admin"><?= t('admin.nav.home') ?></a></li>
                 <li class="nav-item"><a class="nav-link " href="#"><?= t('admin.nav.dashboard') ?></a></li>
                 <li class="nav-item"><a class="nav-link " href="#"><?= t('admin.nav.orders') ?></a></li>
                 <li class="nav-item"><a class="nav-link " href="#"><?= t('admin.nav.products') ?></a></li>
                 <li class="nav-item"><a class="nav-link " href="#"><?= t('admin.nav.categories') ?></a></li>
-                <li class="nav-item"><a class="nav-link " href="#"><?= t('admin.nav.customers') ?></a></li>
+                <li class="nav-item"><a class="nav-link " href="users"><?= t('admin.nav.users') ?></a></li>
             </ul>
 
             <!-- Account + Language -->
             <ul class="navbar-nav ms-auto align-items mb-2 mb-lg-0">
                 <!-- Language Switcher -->
                 <li class="nav-item">
-                    <a class="nav-link px-2" href="?lang=ar"
+                    <a class="nav-link px-2" href="<?= current_url_with_lang('ar') ?>"
                        style="font-weight: <?= (isset($_SESSION['lang']) ? $_SESSION['lang'] : 'en') === 'ar' ? '600' : '400' ?>">عربي</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link px-2" href="?lang=en"
+                    <a class="nav-link px-2" href="<?= current_url_with_lang('en') ?>"
                        style="font-weight: <?= (isset($_SESSION['lang']) ? $_SESSION['lang'] : 'en') === 'en' ? '600' : '400' ?>">English</a>
                 </li>
 
@@ -40,7 +40,7 @@
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                         <li><a class="dropdown-item" href="#"><?= t('admin.nav.settings') ?></a></li>
                         <li><a class="dropdown-item"
-                               href="users.php?do=Edit&id=<?= $_SESSION['user_id'] ?>">
+                               href="users?do=Edit&id=<?= $_SESSION['user_id'] ?>">
                                 <?= t('admin.nav.edit_profile') ?>
                             </a>
                         </li>

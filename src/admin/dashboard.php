@@ -25,10 +25,12 @@ include $templates . 'header.php';
 <?php endif; ?>
 
 
-    <h1>Welcome to Admin Dashboard, <?= htmlspecialchars($_SESSION['username']) ?></h1>
+    <div class="container min-vh-100">
+        <h1>Welcome to Admin Dashboard, <?= htmlspecialchars($_SESSION['username']) ?></h1>
 
-    <a href="logout.php">Logout</a>
-    <a href="/">Home</a>
+        <a href="logout.php">Logout</a>
+        <a href="/">Home</a>
+    </div>
 
 <?php include $templates . 'footer.php'; ?>
 <?php
