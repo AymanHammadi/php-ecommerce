@@ -42,4 +42,4 @@ $_SESSION['group_id'] = (int)$user['group_id'];
 $_SESSION['login_success'] = true;
 
 // Redirect to dashboard
-redirect('../../dashboard.php');
+redirect('../../dashboard');
