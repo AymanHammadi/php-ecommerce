@@ -1,8 +1,17 @@
 <?php
+/**
+ * Admin Login Page
+ * 
+ * This file handles administrator login functionality
+ * and redirects logged-in admins to the dashboard.
+ */
+
+// Include required files
 require_once 'includes/functions/auth.php';
 require_once 'config.php';
 
-$noNavbar = true;       // Disable navbar on this page
+// Page configuration
+$noNavbar = true;       // Disable navbar on login page
 $pageTitle = 'Login';   // Set page title for header
 
 // Redirect logged-in admins to dashboard
@@ -10,11 +19,11 @@ if (isLoggedIn() && isAdmin()) {
     redirect('dashboard');
 }
 
-load_language();        // Load language strings
+// Load language strings for internationalization
+load_language();
 
+// Include header template
 include $templates . 'header.php';
-
-
 ?>
 
 <!-- Page content: centered login form -->
@@ -31,20 +40,24 @@ include $templates . 'header.php';
             <?php unset($_SESSION['error']); ?>
         <?php endif; ?>
 
+        <!-- Login form -->
         <form action="includes/functions/login.php" method="POST">
+            <!-- Email field -->
             <div class="mb-3">
                 <label for="email" class="form-label"><?= htmlspecialchars(t('login.email_label')) ?></label>
                 <input type="email" name="email" id="email" class="form-control" required>
             </div>
 
+            <!-- Password field -->
             <div class="mb-3">
                 <label for="password" class="form-label"><?= htmlspecialchars(t('login.password_label')) ?></label>
                 <input type="password" name="password" id="password" class="form-control" required>
             </div>
 
+            <!-- Login button -->
             <button type="submit" class="btn btn-primary w-100"><?= htmlspecialchars(t('login.button')) ?></button>
         </form>
     </div>
 </div>
 
-<?php include $templates . 'footer.php'; ?>  <!-- Include common footer -->
+<?php include $templates . 'footer.php'; ?> <!-- Include common footer -->
