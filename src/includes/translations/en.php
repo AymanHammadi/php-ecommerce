@@ -32,10 +32,36 @@ return [
             'orders' => 'Orders',
             'products' => 'Products',
             'categories' => 'Categories',
-            'customers' => 'Customers',
+            'users' => 'Users',
             'edit_profile' => 'Edit profile',
             'settings' => 'Settings',
             'logout' => 'Log Out',
+        ],
+        'users' => [
+            'edit_title' => 'Edit User',
+            'update_success' => 'User updated successfully.',
+            'update_failed' => 'Failed to update user.',
+            'fields' => [
+                'username' => 'Username',
+                'email' => 'Email',
+                'full_name' => 'Full Name',
+                'group_id' => 'Group',
+                'trust_status' => 'Trust Status',
+                'reg_status' => 'Registration Status',
+            ],
+            'groups' => [
+                'user' => 'User',
+                'admin' => 'Admin',
+            ],
+            'trust' => [
+                'trusted' => 'Trusted',
+                'untrusted' => 'Untrusted',
+            ],
+            'reg' => [
+                'pending' => 'Pending',
+                'approved' => 'Approved',
+            ],
+            'submit' => 'Save Changes',
         ],
     ],
 

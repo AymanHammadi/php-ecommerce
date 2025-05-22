@@ -31,10 +31,36 @@ return [
             'orders' => 'الطلبات',
             'products' => 'المنتجات',
             'categories' => 'الفئات',
-            'customers' => 'العملاء',
+            'users' => 'المستخدمون',
             'edit_profile' => 'تعديل الحساب',
             'settings' => 'الإعدادات',
             'logout' => 'تسجيل الخروج',
+        ],
+        'users' => [
+            'edit_title' => 'تعديل المستخدم',
+            'update_success' => 'تم تحديث المستخدم بنجاح.',
+            'update_failed' => 'فشل في تحديث المستخدم.',
+            'fields' => [
+                'username' => 'اسم المستخدم',
+                'email' => 'البريد الإلكتروني',
+                'full_name' => 'الاسم الكامل',
+                'group_id' => 'المجموعة',
+                'trust_status' => 'حالة الثقة',
+                'reg_status' => 'حالة التسجيل',
+            ],
+            'groups' => [
+                'user' => 'مستخدم',
+                'admin' => 'مدير',
+            ],
+            'trust' => [
+                'trusted' => 'موثوق',
+                'untrusted' => 'غير موثوق',
+            ],
+            'reg' => [
+                'pending' => 'قيد الانتظار',
+                'approved' => 'مقبول',
+            ],
+            'submit' => 'حفظ التغييرات',
         ],
     ],
 

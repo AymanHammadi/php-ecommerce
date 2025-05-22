@@ -54,7 +54,7 @@ function t($key)
 // Check for language switch request and update session accordingly
 if (isset($_GET['lang'])) {
     $allowedLangs = ['en', 'ar',];
-    $lang = filter_var($_GET['lang'], FILTER_SANITIZE_STRING);
+    $lang = preg_replace('/[^a-z]/i', '', $_GET['lang']);
     if (in_array($lang, $allowedLangs)) {
         $_SESSION['lang'] = $lang;
     }
@@ -64,3 +64,11 @@ if (isset($_GET['lang'])) {
 // Initialize language
 $langCode = isset($_SESSION['lang']) ? $_SESSION['lang'] : 'en';
 load_language($langCode);
+
+// Function to preserve the current URL
+function current_url_with_lang($lang)
+{
+    $query = $_GET;
+    $query['lang'] = $lang;
+    return basename($_SERVER['PHP_SELF']) . '?' . http_build_query($query);
+}
