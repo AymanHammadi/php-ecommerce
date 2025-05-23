@@ -43,17 +43,17 @@ switch ($do) {
 
             <div class="table-responsive">
                 <!-- Users table -->
-                <table class="table table-striped table-bordered align-middle">
-                    <thead>
+                <table class="table-dashboard table table-hover table-bordered align-middle">
+                    <thead class="table-dark">
                     <tr>
-                        <th>#</th>
+                        <th class="">#</th>
                         <th><?= t('admin.users.fields.username') ?></th>
                         <th><?= t('admin.users.fields.email') ?></th>
                         <th><?= t('admin.users.fields.full_name') ?></th>
                         <th><?= t('admin.users.fields.group_id') ?></th>
                         <th><?= t('admin.users.fields.trust_status') ?></th>
                         <th><?= t('admin.users.fields.reg_status') ?></th>
-                        <th><?= t('admin.users.actions') ?></th>
+                        <th class="text-end"><?= t('admin.users.actions') ?></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -66,9 +66,10 @@ switch ($do) {
                             <td><?= $user['group_id'] == 1 ? t('admin.users.groups.admin') : t('admin.users.groups.user') ?></td>
                             <td><?= $user['trust_status'] ? t('admin.users.trust.trusted') : t('admin.users.trust.untrusted') ?></td>
                             <td><?= $user['reg_status'] ? t('admin.users.reg.approved') : t('admin.users.reg.pending') ?></td>
-                            <td>
-                                <a href="?do=Edit&id=<?= $user['user_id'] ?>" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-edit"></i> <?= t('admin.users.edit') ?>
+                            <td class="text-end">
+                                <a href="?do=Edit&id=<?= $user['user_id'] ?>"
+                                   class="btn btn-outline-primary btn-sm me-1">
+                                    <i class="fas fa-edit me-1"></i><?= t('admin.users.edit') ?>
                                 </a>
                                 <a href="users.php?do=Delete&id=<?= $user['user_id'] ?>"
                                    data-confirm
@@ -80,8 +81,8 @@ switch ($do) {
                                    data-precheck="preventSelfDelete"
                                    data-user-id="<?= $user['user_id'] ?>"
                                    data-current-id="<?= $_SESSION['user_id'] ?>"
-                                   class="btn btn-sm btn-danger">
-                                    <i class="fas fa-trash-alt"></i> <?= t('admin.users.delete') ?>
+                                   class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-trash-alt me-1"></i><?= t('admin.users.delete') ?>
                                 </a>
                             </td>
                         </tr>
@@ -89,11 +90,12 @@ switch ($do) {
 
                     <?php if (empty($users)): ?>
                         <tr>
-                            <td colspan="8" class="text-center"><?= t('admin.users.no_users') ?></td>
+                            <td colspan="8" class="text-center text-muted py-4"><?= t('admin.users.no_users') ?></td>
                         </tr>
                     <?php endif; ?>
                     </tbody>
                 </table>
+
             </div>
         </div>
 
