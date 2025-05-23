@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin Users Management Page
- * 
+ *
  * This file handles all user management operations including:
  * - Listing all users
  * - Adding new users
@@ -16,13 +16,13 @@ require_once 'includes/functions/auth.php';
 requireAdmin(); // only admins can access this page
 
 // Set page title for header
-$pageTitle = 'Manage Users';
-
-// Include header template
-include $templates . 'header.php';
+$pageTitle = t('admin.users.manage_title');
 
 // Include validation functions
 require_once __DIR__ . '/includes/functions/validation.php';
+
+// Include header template
+include $templates . 'header.php';
 
 // Get the operation (default to 'Manage')
 $do = $_GET['do'] ?? 'Manage';
@@ -37,8 +37,8 @@ switch ($do) {
 
         <div class="container py-5 min-vh-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h2 class="mb-0">Users List</h2>
-                <a href="?do=Add" class="btn btn-success">+ Add New User</a>
+                <h2 class="mb-0"><?= t('admin.users.manage_title') ?></h2>
+                <a href="?do=Add" class="btn btn-success">+ <?= t('admin.users.add_new') ?></a>
             </div>
 
             <div class="table-responsive">
@@ -47,13 +47,13 @@ switch ($do) {
                     <thead>
                     <tr>
                         <th>#</th>
-                        <th>Username</th>
-                        <th>Email</th>
-                        <th>Full Name</th>
-                        <th>Role</th>
-                        <th>Trust Status</th>
-                        <th>Reg. Status</th>
-                        <th>Actions</th>
+                        <th><?= t('admin.users.fields.username') ?></th>
+                        <th><?= t('admin.users.fields.email') ?></th>
+                        <th><?= t('admin.users.fields.full_name') ?></th>
+                        <th><?= t('admin.users.fields.group_id') ?></th>
+                        <th><?= t('admin.users.fields.trust_status') ?></th>
+                        <th><?= t('admin.users.fields.reg_status') ?></th>
+                        <th><?= t('admin.users.actions') ?></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -67,19 +67,21 @@ switch ($do) {
                             <td><?= $user['trust_status'] ? t('admin.users.trust.trusted') : t('admin.users.trust.untrusted') ?></td>
                             <td><?= $user['reg_status'] ? t('admin.users.reg.approved') : t('admin.users.reg.pending') ?></td>
                             <td>
-                                <a href="?do=Edit&id=<?= $user['user_id'] ?>" class="btn btn-sm btn-primary">Edit</a>
+                                <a href="?do=Edit&id=<?= $user['user_id'] ?>" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-edit"></i> <?= t('admin.users.edit') ?>
+                                </a>
                                 <a href="users.php?do=Delete&id=<?= $user['user_id'] ?>"
                                    data-confirm
                                    data-url="users.php?do=Delete&id=<?= $user['user_id'] ?>"
-                                   data-message="Delete user '<?= htmlspecialchars($user['full_name']) ?>'?"
-                                   data-btn-text="Delete"
+                                   data-message="<?= t('admin.users.delete_confirm') ?> '<?= htmlspecialchars($user['full_name']) ?>'?"
+                                   data-btn-text="<?= t('admin.users.delete') ?>"
                                    data-btn-class="btn-danger"
-                                   data-title="Delete User"
+                                   data-title="<?= t('admin.users.delete_title') ?>"
                                    data-precheck="preventSelfDelete"
                                    data-user-id="<?= $user['user_id'] ?>"
                                    data-current-id="<?= $_SESSION['user_id'] ?>"
                                    class="btn btn-sm btn-danger">
-                                    Delete
+                                    <i class="fas fa-trash-alt"></i> <?= t('admin.users.delete') ?>
                                 </a>
                             </td>
                         </tr>
@@ -87,7 +89,7 @@ switch ($do) {
 
                     <?php if (empty($users)): ?>
                         <tr>
-                            <td colspan="8" class="text-center">No users found.</td>
+                            <td colspan="8" class="text-center"><?= t('admin.users.no_users') ?></td>
                         </tr>
                     <?php endif; ?>
                     </tbody>
@@ -101,12 +103,11 @@ switch ($do) {
         break;
 
     case 'Add':
-        // Display form for adding a new user
         ?>
         <div class="container py-5 min-vh-100 d-flex justify-content-center align-items-start">
             <div class="edit-user-form card shadow-sm w-100">
                 <div class="card-body">
-                    <h4 class="card-title text-center mb-4"><?= t('admin.users.edit_title') ?></h4>
+                    <h4 class="card-title text-center mb-4"><?= t('admin.users.add_title') ?></h4>
 
                     <!-- Add user form -->
                     <form action="?do=Insert" method="POST">
@@ -225,11 +226,11 @@ switch ($do) {
         // Process new user insertion
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             // Prevent direct access to this action
-            $title = 'Invalid Request';
-            $message = 'You cannot access this page directly.';
+            $title = t('admin.users.invalid_action');
+            $message = t('admin.users.invalid_request');
             $type = 'error';
             $actions = [
-                ['label' => 'Back to Users', 'url' => 'users.php?do=Manage', 'style' => 'secondary']
+                ['label' => t('admin.users.back_to_users'), 'url' => 'users.php?do=Manage', 'style' => 'secondary']
             ];
             include 'includes/templates/components/message.php';
             break;
@@ -273,7 +274,7 @@ switch ($do) {
 
         // If validation errors exist, show error message
         if (!empty($errors)) {
-            $title = 'Insert Failed';
+            $title = t('admin.users.insert_failed');
             $type = 'error';
             $message = '<ol>';
             foreach ($errors as $fieldErrors) {
@@ -283,8 +284,8 @@ switch ($do) {
             }
             $message .= '</ol>';
             $actions = [
-                ['label' => 'Back to Add Form', 'url' => 'users.php?do=Add', 'style' => 'warning'],
-                ['label' => 'Back to Users', 'url' => 'users.php?do=Manage', 'style' => 'secondary']
+                ['label' => t('admin.users.back_to_add_form'), 'url' => 'users.php?do=Add', 'style' => 'warning'],
+                ['label' => t('admin.users.back_to_users'), 'url' => 'users.php?do=Manage', 'style' => 'secondary']
             ];
             include 'includes/templates/components/message.php';
             break;
@@ -308,13 +309,15 @@ switch ($do) {
         ]);
 
         // Show success message
-        $title = 'User Added';
-        $message = 'User has been successfully added.';
+        $title = t('admin.users.add_title');
+        $message = t('admin.users.insert_success');
         $type = 'success';
         $actions = [
-            ['label' => 'Add Another User', 'url' => 'users.php?do=Add', 'style' => 'primary'],
-            ['label' => 'Back to Users', 'url' => 'users.php?do=Manage', 'style' => 'secondary']
+            ['label' => t('admin.users.add_another'), 'url' => 'users.php?do=Add', 'style' => 'primary'],
+            ['label' => t('admin.users.back_to_users'), 'url' => 'users.php?do=Manage', 'style' => 'secondary']
         ];
+
+
         include 'includes/templates/components/message.php';
         break;
 
@@ -329,7 +332,7 @@ switch ($do) {
 
         // Check if user exists
         if (!$user) {
-            echo '<div class="alert alert-danger">User not found.</div>';
+            echo '<div class="alert alert-danger">' . t('admin.users.user_not_found') . '</div>';
             break;
         }
         ?>
@@ -438,11 +441,11 @@ switch ($do) {
         // Process user update
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             // Prevent direct access to this action
-            $title = 'Invalid Request';
-            $message = 'You cannot access this page directly.';
+            $title = t('admin.users.invalid_action');
+            $message = t('admin.users.invalid_request');
             $type = 'error';
             $actions = [
-                ['label' => 'Back to Users', 'url' => 'users.php?do=Manage', 'style' => 'secondary']
+                ['label' => t('admin.users.back_to_users'), 'url' => 'users.php?do=Manage', 'style' => 'secondary']
             ];
             include 'includes/templates/components/message.php';
             break;
@@ -484,7 +487,7 @@ switch ($do) {
 
         // If validation errors exist, show error message
         if (!empty($errors)) {
-            $title = 'Update Failed';
+            $title = t('admin.users.update_failed');
             $type = 'error';
             $message = '<ol>';
             foreach ($errors as $fieldErrors) {
@@ -494,8 +497,8 @@ switch ($do) {
             }
             $message .= '</ol>';
             $actions = [
-                ['label' => 'Back to Edit Form', 'url' => 'users.php?do=Edit&id=' . $data['user_id'], 'style' => 'warning'],
-                ['label' => 'Back to Users', 'url' => 'users.php?do=Manage', 'style' => 'secondary']
+                ['label' => t('admin.users.back_to_edit_form'), 'url' => 'users.php?do=Edit&id=' . $data['user_id'], 'style' => 'warning'],
+                ['label' => t('admin.users.back_to_users'), 'url' => 'users.php?do=Manage', 'style' => 'secondary']
             ];
             include 'includes/templates/components/message.php';
             break;
@@ -518,16 +521,16 @@ switch ($do) {
         ]);
 
         // Show success or error message
-        $title = $success ? 'Update Successful' : 'Update Failed';
+        $title = $success ? t('admin.users.update_success') : t('admin.users.update_failed');
         $message = $success
             ? t('admin.users.update_success')
             : t('admin.users.update_failed');
         $type = $success ? 'success' : 'error';
         $actions = $success
-            ? [['label' => 'Back to Users', 'url' => 'users.php?do=Manage', 'style' => 'success']]
+            ? [['label' => t('admin.users.back_to_users'), 'url' => 'users.php?do=Manage', 'style' => 'success']]
             : [
-                ['label' => 'Back to Edit Form', 'url' => 'users.php?do=Edit&id=' . $data['user_id'], 'style' => 'warning'],
-                ['label' => 'Back to Users', 'url' => 'users.php?do=Manage', 'style' => 'secondary']
+                ['label' => t('admin.users.back_to_edit_form'), 'url' => 'users.php?do=Edit&id=' . $data['user_id'], 'style' => 'warning'],
+                ['label' => t('admin.users.back_to_users'), 'url' => 'users.php?do=Manage', 'style' => 'secondary']
             ];
 
         include 'includes/templates/components/message.php';
@@ -540,7 +543,7 @@ switch ($do) {
 
         // Prevent users from deleting their own account
         if ($user_id === $current_user_id) {
-            echo '<div class="alert alert-warning text-center mt-5">You cannot delete your own account.</div>';
+            echo '<div class="alert alert-warning text-center mt-5">' . t('admin.users.cannot_delete_self') . '</div>';
             break;
         }
 
@@ -549,23 +552,24 @@ switch ($do) {
         $stmt->execute([$user_id]);
 
         if ($stmt->rowCount() === 0) {
-            echo '<div class="alert alert-danger text-center mt-5">User not found.</div>';
+            echo '<div class="alert alert-danger text-center mt-5">' . t('admin.users.user_not_found') . '</div>';
             break;
         }
 
         // Delete the user
         $delete_stmt = $pdo->prepare("DELETE FROM users WHERE user_id = ?");
-        $delete_stmt->execute([$user_id]);
-
-        // Show success message and redirect
-        echo '<div class="alert alert-success text-center mt-5">User deleted successfully.</div>';
-        echo '<meta http-equiv="refresh" content="2;url=users.php?do=Manage">';
+        $delete_stmt->execute([$user_id]);        // Show success message and redirect
+        $title = t('admin.users.delete_title');
+        $message = t('admin.users.delete_success');
+        $type = 'success';
+        $actions = [['label' => t('admin.users.back_to_users'), 'url' => 'users.php?do=Manage', 'style' => 'primary']];
+        include 'includes/templates/components/message.php';
         break;
 
     default:
         // Handle invalid actions
         echo "<div class='d-flex flex-column justify-content-center align-content-center container min-vh-100 '>
-                <div class='alert alert-danger text-center'>Invalid Action</div>
+                <div class='alert alert-danger text-center'>" . t('admin.users.invalid_action') . "</div>
               </div>";
         break;
 }

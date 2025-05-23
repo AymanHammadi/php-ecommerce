@@ -6,8 +6,6 @@ $pageTitle = 'Dashboard';
 requireAdmin();
 
 include $templates . 'header.php';
-
-
 ?>
 
 <?php if (isset($_SESSION['login_success'])): ?>
