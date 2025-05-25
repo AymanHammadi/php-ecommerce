@@ -36,7 +36,7 @@ return [
             'edit_profile' => 'Edit profile',
             'settings' => 'Settings',
             'logout' => 'Log Out',
-        ],        
+        ],
         'users' => [
             'edit_title' => 'Edit User',
             'update_success' => 'User updated successfully.',
@@ -66,6 +66,7 @@ return [
                 'group_id' => 'Group',
                 'trust_status' => 'Trust Status',
                 'reg_status' => 'Registration Status',
+                'reg_date' => 'Registration Date',
             ],
             'groups' => [
                 'user' => 'User',

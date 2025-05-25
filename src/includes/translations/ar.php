@@ -35,7 +35,7 @@ return [
             'edit_profile' => 'تعديل الحساب',
             'settings' => 'الإعدادات',
             'logout' => 'تسجيل الخروج',
-        ],        
+        ],
         'users' => [
             'edit_title' => 'تعديل المستخدم',
             'update_success' => 'تم تحديث المستخدم بنجاح.',
@@ -65,6 +65,7 @@ return [
                 'group_id' => 'المجموعة',
                 'trust_status' => 'حالة الثقة',
                 'reg_status' => 'حالة التسجيل',
+                'reg_date' => 'تاريخ التسجيل'
             ],
             'groups' => [
                 'user' => 'مستخدم',

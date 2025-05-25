@@ -31,7 +31,7 @@ $do = $_GET['do'] ?? 'Manage';
 switch ($do) {
     case 'Manage':
         // Fetch all users with their information
-        $stmt = $pdo->query("SELECT user_id, username, email, full_name, group_id, trust_status, reg_status FROM users ORDER BY user_id DESC");
+        $stmt = $pdo->query("SELECT user_id, username, email, full_name, group_id, trust_status, reg_status, registration_date FROM users ORDER BY user_id DESC");
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         ?>
 
@@ -53,6 +53,7 @@ switch ($do) {
                         <th><?= t('admin.users.fields.group_id') ?></th>
                         <th><?= t('admin.users.fields.trust_status') ?></th>
                         <th><?= t('admin.users.fields.reg_status') ?></th>
+                        <th><?= t('admin.users.fields.reg_date') ?></th>
                         <th class="text-end"><?= t('admin.users.actions') ?></th>
                     </tr>
                     </thead>
@@ -66,6 +67,7 @@ switch ($do) {
                             <td><?= $user['group_id'] == 1 ? t('admin.users.groups.admin') : t('admin.users.groups.user') ?></td>
                             <td><?= $user['trust_status'] ? t('admin.users.trust.trusted') : t('admin.users.trust.untrusted') ?></td>
                             <td><?= $user['reg_status'] ? t('admin.users.reg.approved') : t('admin.users.reg.pending') ?></td>
+                            <td><?= $user['registration_date'] ?></td>
                             <td class="text-end">
                                 <a href="?do=Edit&id=<?= $user['user_id'] ?>"
                                    class="btn btn-outline-primary btn-sm me-1">
@@ -231,9 +233,10 @@ switch ($do) {
             $title = t('admin.users.invalid_action');
             $message = t('admin.users.invalid_request');
             $type = 'error';
-            $actions = [
-                ['label' => t('admin.users.back_to_users'), 'url' => 'users.php?do=Manage', 'style' => 'secondary']
-            ];
+
+            $redirect_url = 'users.php?do=Manage';
+            $redirect_delay = 3;
+
             include 'includes/templates/components/message.php';
             break;
         }
@@ -285,10 +288,9 @@ switch ($do) {
                 }
             }
             $message .= '</ol>';
-            $actions = [
-                ['label' => t('admin.users.back_to_add_form'), 'url' => 'users.php?do=Add', 'style' => 'warning'],
-                ['label' => t('admin.users.back_to_users'), 'url' => 'users.php?do=Manage', 'style' => 'secondary']
-            ];
+
+            $redirect_url = 'users.php?do=Add';
+            $redirect_delay = 3;
             include 'includes/templates/components/message.php';
             break;
         }
@@ -297,8 +299,8 @@ switch ($do) {
         $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
 
         // Insert new user into database
-        $stmt = $pdo->prepare("INSERT INTO users (username, password, email, full_name, group_id, trust_status, reg_status)
-                           VALUES (:username, :password, :email, :full_name, :group_id, :trust_status, :reg_status)");
+        $stmt = $pdo->prepare("INSERT INTO users (username, password, email, full_name, group_id, trust_status, reg_status, registration_date)
+                           VALUES (:username, :password, :email, :full_name, :group_id, :trust_status, :reg_status, now())");
 
         $stmt->execute([
             ':username' => $data['username'],
@@ -446,9 +448,9 @@ switch ($do) {
             $title = t('admin.users.invalid_action');
             $message = t('admin.users.invalid_request');
             $type = 'error';
-            $actions = [
-                ['label' => t('admin.users.back_to_users'), 'url' => 'users.php?do=Manage', 'style' => 'secondary']
-            ];
+            $redirect_delay = 3;
+            $redirect_url = 'users.php?do=Manage';
+
             include 'includes/templates/components/message.php';
             break;
         }
@@ -491,6 +493,7 @@ switch ($do) {
         if (!empty($errors)) {
             $title = t('admin.users.update_failed');
             $type = 'error';
+
             $message = '<ol>';
             foreach ($errors as $fieldErrors) {
                 foreach ((array)$fieldErrors as $err) {
@@ -498,10 +501,11 @@ switch ($do) {
                 }
             }
             $message .= '</ol>';
-            $actions = [
-                ['label' => t('admin.users.back_to_edit_form'), 'url' => 'users.php?do=Edit&id=' . $data['user_id'], 'style' => 'warning'],
-                ['label' => t('admin.users.back_to_users'), 'url' => 'users.php?do=Manage', 'style' => 'secondary']
-            ];
+
+            // Redirect back to edit form after 3 seconds
+            $redirect_url = 'users.php?do=Edit&id=' . $data['user_id'];
+            $redirect_delay = 3;
+
             include 'includes/templates/components/message.php';
             break;
         }
@@ -524,48 +528,30 @@ switch ($do) {
 
         // Show success or error message
         $title = $success ? t('admin.users.update_success') : t('admin.users.update_failed');
-        $message = $success
-            ? t('admin.users.update_success')
-            : t('admin.users.update_failed');
         $type = $success ? 'success' : 'error';
-        $actions = $success
-            ? [['label' => t('admin.users.back_to_users'), 'url' => 'users.php?do=Manage', 'style' => 'success']]
-            : [
-                ['label' => t('admin.users.back_to_edit_form'), 'url' => 'users.php?do=Edit&id=' . $data['user_id'], 'style' => 'warning'],
-                ['label' => t('admin.users.back_to_users'), 'url' => 'users.php?do=Manage', 'style' => 'secondary']
-            ];
+
+        // Redirect user after 2 seconds
+        $redirect_url = $success
+            ? 'users.php?do=Manage'
+            : 'users.php?do=Edit&id=' . $data['user_id'];
+
+        $redirect_delay = 2;
 
         include 'includes/templates/components/message.php';
         break;
 
     case 'Delete':
-        // Process user deletion
-        $user_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-        $current_user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
-
-        // Prevent users from deleting their own account
-        if ($user_id === $current_user_id) {
-            echo '<div class="alert alert-warning text-center mt-5">' . t('admin.users.cannot_delete_self') . '</div>';
-            break;
-        }
-
-        // Check if user exists
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE user_id = ?");
-        $stmt->execute([$user_id]);
-
-        if ($stmt->rowCount() === 0) {
-            echo '<div class="alert alert-danger text-center mt-5">' . t('admin.users.user_not_found') . '</div>';
-            break;
-        }
-
-        // Delete the user
-        $delete_stmt = $pdo->prepare("DELETE FROM users WHERE user_id = ?");
-        $delete_stmt->execute([$user_id]);        // Show success message and redirect
-        $title = t('admin.users.delete_title');
-        $message = t('admin.users.delete_success');
-        $type = 'success';
-        $actions = [['label' => t('admin.users.back_to_users'), 'url' => 'users.php?do=Manage', 'style' => 'primary']];
-        include 'includes/templates/components/message.php';
+        delete_entity([
+            'table' => 'users',
+            'id_column' => 'user_id',
+            'id' => $_GET['id'] ?? 0,
+            'redirect_url' => 'users.php?do=Manage',
+            'redirect_delay' => 3,
+            'not_found_title' => 'admin.users.user_not_found',
+            'success_title' => 'admin.users.delete_title',
+            'success_message' => 'admin.users.delete_success',
+            'prevent_self_delete' => $_SESSION['user_id'] ?? null,
+        ]);
         break;
 
     default:
