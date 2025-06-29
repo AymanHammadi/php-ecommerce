@@ -1,4 +1,7 @@
 <?php
+global $templates, $pdo, $components;
+
+
 /**
  * Admin Users Management Page
  *
@@ -27,11 +30,17 @@ include $templates . 'header.php';
 // Get the operation (default to 'Manage')
 $do = $_GET['do'] ?? 'Manage';
 
-// Route to appropriate section based on operation
+// Route to page based on operation
 switch ($do) {
     case 'Manage':
+        $query = '';
+        // Filter Request
+        if (isset($_GET['page']) && $_GET['page'] === 'pending') {
+            $query = 'WHERE reg_status = 0';
+        }
+
         // Fetch all users with their information
-        $stmt = $pdo->query("SELECT user_id, username, email, full_name, group_id, trust_status, reg_status, registration_date FROM users ORDER BY user_id DESC");
+        $stmt = $pdo->query("SELECT user_id, username, email, full_name, group_id, trust_status, reg_status, registration_date FROM users $query ORDER BY user_id DESC");
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         ?>
 
@@ -40,64 +49,79 @@ switch ($do) {
                 <h2 class="mb-0"><?= t('admin.users.manage_title') ?></h2>
                 <a href="?do=Add" class="btn btn-success">+ <?= t('admin.users.add_new') ?></a>
             </div>
+            <div class="card content-card">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h5 class="section-header mb-0"><?= t('admin.users.manage_title') ?></h5>
+                </div>
+                <div class="card-body pt-0">
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <!-- Users table -->
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                <tr class="table-header">
+                                    <th>User ID</th>
+                                    <th><?= t('admin.users.fields.username') ?></th>
+                                    <th><?= t('admin.users.fields.email') ?></th>
+                                    <th><?= t('admin.users.fields.full_name') ?></th>
+                                    <th><?= t('admin.users.fields.group_id') ?></th>
+                                    <th><?= t('admin.users.fields.trust_status') ?></th>
+                                    <th><?= t('admin.users.fields.reg_status') ?></th>
+                                    <th><?= t('admin.users.fields.reg_date') ?></th>
+                                    <th class="text-end"><?= t('admin.users.actions') ?></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <?php foreach ($users as $user): ?>
+                                    <tr>
+                                        <td><?= htmlspecialchars($user['user_id']) ?></td>
+                                        <td><?= htmlspecialchars($user['username']) ?></td>
+                                        <td><?= htmlspecialchars($user['email']) ?></td>
+                                        <td><?= htmlspecialchars($user['full_name']) ?></td>
+                                        <td><?= $user['group_id'] == 1 ? t('admin.users.groups.admin') : t('admin.users.groups.user') ?></td>
+                                        <td><?= $user['trust_status'] ? t('admin.users.trust.trusted') : t('admin.users.trust.untrusted') ?></td>
+                                        <td><?= $user['reg_status'] ? t('admin.users.reg.approved') : t('admin.users.reg.pending') ?></td>
+                                        <td><?= $user['registration_date'] ?></td>
+                                        <td class="text-end">
+                                            <a href="?do=Edit&id=<?= $user['user_id'] ?>"
+                                               class="btn btn-outline-primary btn-sm me-1">
+                                                <i class="fas fa-edit me-1"></i><?= t('admin.users.edit') ?>
+                                            </a>
+                                            <a href="users.php?do=Delete&id=<?= $user['user_id'] ?>"
+                                               data-confirm
+                                               data-url="users.php?do=Delete&id=<?= $user['user_id'] ?>"
+                                               data-message="<?= t('admin.users.delete_confirm') ?> '<?= htmlspecialchars($user['full_name']) ?>'?"
+                                               data-btn-text="<?= t('admin.users.delete') ?>"
+                                               data-btn-class="btn-danger"
+                                               data-title="<?= t('admin.users.delete_title') ?>"
+                                               data-precheck="preventSelfDelete"
+                                               data-user-id="<?= $user['user_id'] ?>"
+                                               data-current-id="<?= $_SESSION['user_id'] ?>"
+                                               class="btn btn-outline-danger btn-sm">
+                                                <i class="fas fa-trash-alt me-1"></i><?= t('admin.users.delete') ?>
+                                            </a>
+                                            <?php if (!$user['reg_status']): ?>
+                                                <a href="users?do=Approve&id=<?= $user['user_id'] ?>"
+                                                   class="btn btn-outline-warning btn-sm me-1 approve-btn">
+                                                    <?= t('admin.users.approve') ?>
+                                                    <i class="fa-solid fa-question"></i>
+                                                </a>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
 
-            <div class="table-responsive">
-                <!-- Users table -->
-                <table class="table-dashboard table table-hover table-bordered align-middle">
-                    <thead class="table-dark">
-                    <tr>
-                        <th class="">#</th>
-                        <th><?= t('admin.users.fields.username') ?></th>
-                        <th><?= t('admin.users.fields.email') ?></th>
-                        <th><?= t('admin.users.fields.full_name') ?></th>
-                        <th><?= t('admin.users.fields.group_id') ?></th>
-                        <th><?= t('admin.users.fields.trust_status') ?></th>
-                        <th><?= t('admin.users.fields.reg_status') ?></th>
-                        <th><?= t('admin.users.fields.reg_date') ?></th>
-                        <th class="text-end"><?= t('admin.users.actions') ?></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <?php foreach ($users as $user): ?>
-                        <tr>
-                            <td><?= htmlspecialchars($user['user_id']) ?></td>
-                            <td><?= htmlspecialchars($user['username']) ?></td>
-                            <td><?= htmlspecialchars($user['email']) ?></td>
-                            <td><?= htmlspecialchars($user['full_name']) ?></td>
-                            <td><?= $user['group_id'] == 1 ? t('admin.users.groups.admin') : t('admin.users.groups.user') ?></td>
-                            <td><?= $user['trust_status'] ? t('admin.users.trust.trusted') : t('admin.users.trust.untrusted') ?></td>
-                            <td><?= $user['reg_status'] ? t('admin.users.reg.approved') : t('admin.users.reg.pending') ?></td>
-                            <td><?= $user['registration_date'] ?></td>
-                            <td class="text-end">
-                                <a href="?do=Edit&id=<?= $user['user_id'] ?>"
-                                   class="btn btn-outline-primary btn-sm me-1">
-                                    <i class="fas fa-edit me-1"></i><?= t('admin.users.edit') ?>
-                                </a>
-                                <a href="users.php?do=Delete&id=<?= $user['user_id'] ?>"
-                                   data-confirm
-                                   data-url="users.php?do=Delete&id=<?= $user['user_id'] ?>"
-                                   data-message="<?= t('admin.users.delete_confirm') ?> '<?= htmlspecialchars($user['full_name']) ?>'?"
-                                   data-btn-text="<?= t('admin.users.delete') ?>"
-                                   data-btn-class="btn-danger"
-                                   data-title="<?= t('admin.users.delete_title') ?>"
-                                   data-precheck="preventSelfDelete"
-                                   data-user-id="<?= $user['user_id'] ?>"
-                                   data-current-id="<?= $_SESSION['user_id'] ?>"
-                                   class="btn btn-outline-danger btn-sm">
-                                    <i class="fas fa-trash-alt me-1"></i><?= t('admin.users.delete') ?>
-                                </a>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-
-                    <?php if (empty($users)): ?>
-                        <tr>
-                            <td colspan="8" class="text-center text-muted py-4"><?= t('admin.users.no_users') ?></td>
-                        </tr>
-                    <?php endif; ?>
-                    </tbody>
-                </table>
-
+                                <?php if (empty($users)): ?>
+                                    <tr>
+                                        <td colspan="9"
+                                            class="text-center text-muted py-4"><?= t('admin.users.no_users') ?></td>
+                                    </tr>
+                                <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -120,6 +144,7 @@ switch ($do) {
                             <div class="col-md-6">
                                 <label for="username" class="form-label"><?= t('admin.users.fields.username') ?></label>
                                 <input type="text"
+                                       id="username"
                                        name="username"
                                        data-validate="username"
                                        class="form-control <?= isset($errors['username']) ? 'is-invalid' : '' ?>"
@@ -169,6 +194,7 @@ switch ($do) {
                                 <label for="full_name"
                                        class="form-label"><?= t('admin.users.fields.full_name') ?></label>
                                 <input type="text"
+                                       id="full_name"
                                        name="full_name"
                                        data-validate="full_name"
                                        class="form-control"
@@ -234,7 +260,7 @@ switch ($do) {
             $message = t('admin.users.invalid_request');
             $type = 'error';
 
-            $redirect_url = 'users.php?do=Manage';
+            $redirect_url = 'users?do=Manage';
             $redirect_delay = 3;
 
             include 'includes/templates/components/message.php';
@@ -318,7 +344,7 @@ switch ($do) {
         $type = 'success';
         $actions = [
             ['label' => t('admin.users.add_another'), 'url' => 'users.php?do=Add', 'style' => 'primary'],
-            ['label' => t('admin.users.back_to_users'), 'url' => 'users.php?do=Manage', 'style' => 'secondary']
+            ['label' => t('admin.users.back_to_users'), 'url' => 'users?do=Manage', 'style' => 'secondary']
         ];
 
 
@@ -449,7 +475,7 @@ switch ($do) {
             $message = t('admin.users.invalid_request');
             $type = 'error';
             $redirect_delay = 3;
-            $redirect_url = 'users.php?do=Manage';
+            $redirect_url = 'users?do=Manage';
 
             include 'includes/templates/components/message.php';
             break;
@@ -532,7 +558,7 @@ switch ($do) {
 
         // Redirect user after 2 seconds
         $redirect_url = $success
-            ? 'users.php?do=Manage'
+            ? 'users?do=Manage'
             : 'users.php?do=Edit&id=' . $data['user_id'];
 
         $redirect_delay = 2;
@@ -545,13 +571,27 @@ switch ($do) {
             'table' => 'users',
             'id_column' => 'user_id',
             'id' => $_GET['id'] ?? 0,
-            'redirect_url' => 'users.php?do=Manage',
+            'redirect_url' => 'users?do=Manage',
             'redirect_delay' => 3,
             'not_found_title' => 'admin.users.user_not_found',
             'success_title' => 'admin.users.delete_title',
             'success_message' => 'admin.users.delete_success',
             'prevent_self_delete' => $_SESSION['user_id'] ?? null,
         ]);
+        break;
+
+    case 'Approve':
+        if (isset($_GET['id'])) {
+            $user_id = (int)$_GET['id'];
+
+            $stmt = $pdo->prepare("UPDATE users SET reg_status = 1 WHERE user_id = ?");
+            $stmt->execute([$user_id]);
+        }
+        $title = t('admin.users.update_success');
+        $redirect_url = 'users?page=pending';
+        $redirect_delay = 2;
+
+        include 'includes/templates/components/message.php';
         break;
 
     default:

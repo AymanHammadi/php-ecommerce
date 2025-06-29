@@ -17,7 +17,6 @@ $langDirection = $_SESSION['lang'] === 'en' ? 'ltr' : 'rtl';
     <?php endif; ?>
 
     <!--Fontawesome Icon Library-->
-    <link rel="stylesheet" href="<?php echo $css; ?>fontawesome.min.css">
     <link rel="stylesheet" href="<?php echo $css; ?>all.min.css">
 
 

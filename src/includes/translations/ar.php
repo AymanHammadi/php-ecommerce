@@ -83,6 +83,7 @@ return [
             'actions' => 'الإجراءات',
             'edit' => 'تعديل',
             'delete' => 'حذف',
+            'approve' => 'قبول'
         ],
     ],
 

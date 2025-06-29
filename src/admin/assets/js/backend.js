@@ -100,7 +100,7 @@ $(() => {
         $('#genericConfirmModal').modal('show');
     });
 
-    //  precheck function
+    //  Precheck function
     function runPrecheck(type, $el) {
         switch (type) {
             case 'preventSelfDelete':
@@ -115,6 +115,6 @@ $(() => {
         }
         return null;
     }
-
+    
 
 });

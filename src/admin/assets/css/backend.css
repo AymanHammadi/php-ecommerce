@@ -130,7 +130,7 @@
 }
 
 .welcome-section {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    background: #525252;
     border-radius: 16px;
     color: white;
     padding: 2rem;
@@ -146,3 +146,5 @@
 .list-item:hover {
     background-color: #f8f9fa;
 }
+
+

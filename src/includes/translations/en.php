@@ -84,6 +84,7 @@ return [
             'actions' => 'Actions',
             'edit' => 'Edit',
             'delete' => 'Delete',
+            'approve' => 'Approve',
         ],
     ],
 

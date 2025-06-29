@@ -1,4 +1,5 @@
 <?php
+global $templates;
 include 'includes/functions/auth.php';
 include 'config.php';
 $pageTitle = 'Dashboard';
@@ -25,7 +26,7 @@ include $templates . 'header.php';
     <div class="dashboard-container">
         <div class="container-fluid px-4 py-4">
 
-            <!-- Welcome Section -->
+            <!-- Welcome, Section -->
             <div class="welcome-section">
                 <div class="row align-items-center">
                     <div class="col-md-8">
@@ -50,9 +51,6 @@ include $templates . 'header.php';
                             </div>
                             <h3 class="fw-bold text-dark mb-1">$12,340</h3>
                             <p class="text-muted mb-2 small">Total Sales</p>
-                            <span class="badge bg-success bg-opacity-10 text-success">
-                            <i class="fas fa-arrow-up me-1"></i>+12%
-                        </span>
                         </div>
                     </div>
                 </div>
@@ -64,9 +62,7 @@ include $templates . 'header.php';
                             </div>
                             <h3 class="fw-bold text-dark mb-1">25</h3>
                             <p class="text-muted mb-2 small">Orders Today</p>
-                            <span class="badge bg-success bg-opacity-10 text-success">
-                            <i class="fas fa-arrow-up me-1"></i>+8%
-                        </span>
+
                         </div>
                     </div>
                 </div>
@@ -78,26 +74,37 @@ include $templates . 'header.php';
                             </div>
                             <h3 class="fw-bold text-dark mb-1">148</h3>
                             <p class="text-muted mb-2 small">Products</p>
-                            <span class="badge bg-success bg-opacity-10 text-success">
-                            <i class="fas fa-plus me-1"></i>+3
-                        </span>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-md-6">
+                <a class="col-xl-3 col-md-6" href="users?page=pending">
                     <div class="card stats-card">
                         <div class="card-body">
                             <div class="stats-icon bg-info bg-opacity-10 text-info">
                                 <i class="fas fa-users"></i>
                             </div>
-                            <h3 class="fw-bold text-dark mb-1">1,024</h3>
-                            <p class="text-muted mb-2 small">Customers</p>
-                            <span class="badge bg-success bg-opacity-10 text-success">
-                            <i class="fas fa-arrow-up me-1"></i>+24
-                        </span>
+                            <?php
+                            $pending_count = 0;
+                            $error_message = '';
+
+                            try {
+                                // Count pending users (reg_status = 0)
+                                $pending_count = aggregate_query('users', 'COUNT', '*', ['reg_status' => 0]);
+                            } catch (Exception $e) {
+                                // Store error message for display
+                                $error_message = htmlspecialchars($e->getMessage());
+                            }
+
+                            ?>
+                            <?php if ($error_message): ?>
+                                <div class="alert alert-danger text-center"><?= $error_message ?></div>
+                            <?php else: ?>
+                                <h3 class="fw-bold text-dark mb-1"><?= $pending_count ?></h3>
+                                <p class="text-muted mb-2 small">Pending Users</p>
+                            <?php endif; ?>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
 
             <div class="row g-4">
@@ -168,35 +175,59 @@ include $templates . 'header.php';
                 <!-- Sidebar -->
                 <div class="col-lg-4">
                     <!-- Recent Customers -->
-                    <div class="card content-card mb-4">
-                        <div class="card-header bg-transparent border-0 pb-0">
-                            <h6 class="section-header mb-0">Recent Customers</h6>
-                        </div>
-                        <div class="card-body pt-0">
-                            <div class="list-group list-group-flush">
-                                <div class="list-group-item list-item d-flex align-items-center">
-                                    <div class="user-initials bg-primary bg-opacity-10 text-primary me-3">
-                                        AJ
-                                    </div>
-                                    <div>
-                                        <div class="fw-semibold mb-1">Alice Johnson</div>
-                                        <small class="text-muted d-block">alice@example.com</small>
-                                        <small class="text-success">Joined: May 20, 2025</small>
-                                    </div>
-                                </div>
-                                <div class="list-group-item list-item d-flex align-items-center">
-                                    <div class="user-initials bg-info bg-opacity-10 text-info me-3">
-                                        BL
-                                    </div>
-                                    <div>
-                                        <div class="fw-semibold mb-1">Bob Lee</div>
-                                        <small class="text-muted d-block">bob@example.com</small>
-                                        <small class="text-success">Joined: May 18, 2025</small>
-                                    </div>
+                    <?php
+                    try {
+                        // Fetch the latest 5 users
+                        $users = get_records(
+                            table_name: 'users',
+                            columns: ['username', 'email', 'registration_date'],
+                            order_by: ['registration_date' => 'DESC'],
+                            limit: 5
+                        );
+                        ?>
+
+                        <!-- Recent Customers -->
+                        <div class="card content-card mb-4">
+                            <div class="card-header bg-transparent border-0 pb-0">
+                                <h6 class="section-header mb-0">Recent Customers</h6>
+                            </div>
+                            <div class="card-body pt-0">
+                                <div class="list-group list-group-flush">
+                                    <?php if (empty($users)): ?>
+                                        <div class="list-group-item list-item text-center">
+                                            <small class="text-muted">No recent customers found.</small>
+                                        </div>
+                                    <?php else: ?>
+                                        <?php foreach ($users as $index => $user): ?>
+                                            <?php
+                                            // Use first two letters of username for initials, or 'U' if empty
+                                            $initials = !empty($user['username']) ? strtoupper(substr($user['username'], 0, 2)) : 'U';
+                                            // Alternate colors: primary for even index, info for odd
+                                            $bg_color = $index % 2 === 0 ? 'primary' : 'info';
+                                            // Format join date (e.g., "May 20, 2025")
+                                            $join_date = (new DateTime($user['registration_date']))->format('F j, Y');
+                                            ?>
+                                            <div class="list-group-item list-item d-flex align-items-center">
+                                                <div class="user-initials bg-<?php echo $bg_color; ?> bg-opacity-10 text-<?php echo $bg_color; ?> me-3">
+                                                    <?php echo htmlspecialchars($initials); ?>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-semibold mb-1"><?php echo htmlspecialchars($user['username']); ?></div>
+                                                    <small class="text-muted d-block"><?php echo htmlspecialchars($user['email']); ?></small>
+                                                    <small class="text-success">Joined: <?php echo htmlspecialchars($join_date); ?></small>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                        <?php
+                    } catch (Exception $e) {
+                        // Show error if query fails
+                        echo '<div class="alert alert-danger text-center">' . htmlspecialchars($e->getMessage()) . '</div>';
+                    }
+                    ?>
 
                     <!-- Low Stock -->
                     <div class="card content-card">
