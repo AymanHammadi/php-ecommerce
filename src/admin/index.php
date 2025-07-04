@@ -6,6 +6,9 @@
  * and redirects logged-in admins to the dashboard.
  */
 
+global $templates;
+
+
 // Include required files
 require_once 'includes/functions/auth.php';
 require_once 'config.php';

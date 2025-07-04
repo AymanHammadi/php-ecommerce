@@ -60,7 +60,7 @@ try {
     }
 } catch (Exception $e) {
     error_log("User management error: " . $e->getMessage());
-    showErrorMessage(t('admin.users.unexpected_error'), 'users?do=Manage');
+    show_error_message(t('admin.users.unexpected_error'), 'users?do=Manage');
 }
 
 // Include footer template
@@ -95,8 +95,8 @@ function handleAddUser(): void
  */
 function handleInsertUser(): void
 {
-    if (!isPostRequest()) {
-        showErrorMessage(t('admin.users.invalid_request'), 'users?do=Manage');
+    if (!is_post_request()) {
+        show_error_message(t('admin.users.invalid_request'), 'users?do=Manage');
         return;
     }
 
@@ -104,12 +104,12 @@ function handleInsertUser(): void
     $errors = validateUserData($userData, 'insert');
 
     if (!empty($errors)) {
-        showValidationErrors($errors, 'users.php?do=Add');
+        show_validation_errors($errors, 'users.php?do=Add');
         return;
     }
 
     if (insertUser($userData)) {
-        showSuccessMessage(
+        show_success_message(
             t('admin.users.add_title'),
             t('admin.users.insert_success'),
             [
@@ -118,7 +118,7 @@ function handleInsertUser(): void
             ]
         );
     } else {
-        showErrorMessage(t('admin.users.insert_failed'), 'users.php?do=Add');
+        show_error_message(t('admin.users.insert_failed'), 'users.php?do=Add');
     }
 }
 
@@ -127,11 +127,11 @@ function handleInsertUser(): void
  */
 function handleEditUser(): void
 {
-    $userId = getIdFromRequest();
+    $userId = get_id_from_request();
     $user = getUserById($userId);
 
     if (!$user) {
-        showErrorMessage(t('admin.users.user_not_found'), 'users?do=Manage');
+        show_error_message(t('admin.users.user_not_found'), 'users?do=Manage');
         return;
     }
 
@@ -143,8 +143,8 @@ function handleEditUser(): void
  */
 function handleUpdateUser(): void
 {
-    if (!isPostRequest()) {
-        showErrorMessage(t('admin.users.invalid_request'), 'users?do=Manage');
+    if (!is_post_request()) {
+        show_error_message(t('admin.users.invalid_request'), 'users?do=Manage');
         return;
     }
 
@@ -152,12 +152,12 @@ function handleUpdateUser(): void
     $errors = validateUserData($userData, 'update');
 
     if (!empty($errors)) {
-        showValidationErrors($errors, 'users.php?do=Edit&id=' . $userData['user_id']);
+        show_validation_errors($errors, 'users.php?do=Edit&id=' . $userData['user_id']);
         return;
     }
 
     if (updateUser($userData)) {
-        showSuccessMessage(
+        show_success_message(
             t('admin.users.update_success'),
             '',
             [],
@@ -165,7 +165,7 @@ function handleUpdateUser(): void
             2
         );
     } else {
-        showErrorMessage(t('admin.users.update_failed'), 'users.php?do=Edit&id=' . $userData['user_id']);
+        show_error_message(t('admin.users.update_failed'), 'users.php?do=Edit&id=' . $userData['user_id']);
     }
 }
 
@@ -192,10 +192,10 @@ function handleDeleteUser(): void
  */
 function handleApproveUser(): void
 {
-    $userId = getIdFromRequest();
+    $userId = get_id_from_request();
 
     if (approveUser($userId)) {
-        showSuccessMessage(
+        show_success_message(
             t('admin.users.update_success'),
             '',
             [],
@@ -203,7 +203,7 @@ function handleApproveUser(): void
             2
         );
     } else {
-        showErrorMessage(t('admin.users.update_failed'), 'users?page=pending');
+        show_error_message(t('admin.users.update_failed'), 'users?page=pending');
     }
 }
 
@@ -212,9 +212,7 @@ function handleApproveUser(): void
  */
 function handleInvalidAction(): void
 {
-    echo "<div class='d-flex flex-column justify-content-center align-content-center container min-vh-100'>
-            <div class='alert alert-danger text-center'>" . t('admin.users.invalid_action') . "</div>
-          </div>";
+    handle_invalid_action(t('admin.users.invalid_action'));
 }
 
 // =============================================================================
@@ -638,69 +636,3 @@ function renderSelectFields(bool $isEdit, array $user = []): void
     }
 }
 
-// =============================================================================
-// UTILITY FUNCTIONS
-// =============================================================================
-
-/**
- * Check if current request is POST
- */
-function isPostRequest(): bool
-{
-    return $_SERVER['REQUEST_METHOD'] === 'POST';
-}
-
-/**
- * Get ID from request parameters
- */
-function getIdFromRequest(): int
-{
-    return isset($_GET['id']) ? (int)$_GET['id'] : 0;
-}
-
-/**
- * Show validation errors
- */
-function showValidationErrors(array $errors, string $redirectUrl): void
-{
-    $title = t('admin.users.validation_failed');
-    $type = 'error';
-    $message = '<ol>';
-    foreach ($errors as $fieldErrors) {
-        foreach ((array)$fieldErrors as $err) {
-            $message .= '<li class="text-start">' . htmlspecialchars($err) . '</li>';
-        }
-    }
-    $message .= '</ol>';
-
-    $redirect_url = $redirectUrl;
-    $redirect_delay = 3;
-    include 'includes/templates/components/message.php';
-}
-
-/**
- * Show success message with optional actions
- */
-function showSuccessMessage(string $title, string $message = '', array $actions = [], string $redirectUrl = '', int $delay = 3): void
-{
-    $type = 'success';
-    if ($redirectUrl) {
-        $redirect_url = $redirectUrl;
-        $redirect_delay = $delay;
-    }
-    include 'includes/templates/components/message.php';
-}
-
-/**
- * Show error message
- */
-function showErrorMessage(string $message, string $redirectUrl = '', int $delay = 3): void
-{
-    $title = t('admin.users.error');
-    $type = 'error';
-    if ($redirectUrl) {
-        $redirect_url = $redirectUrl;
-        $redirect_delay = $delay;
-    }
-    include 'includes/templates/components/message.php';
-}

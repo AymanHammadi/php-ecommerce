@@ -55,66 +55,102 @@ $(() => {
         });
 
         if (!allValid) {
-            e.preventDefault(); // Stop submission
+            e.preventDefault();
         }
     });
 
-    // Hide/Show Password
-    $(document).on('click', '.toggle-password', function () {
-        const $input = $(this).siblings('input');
-        const $icon = $(this).find('i');
-
-        const is_hidden = $input.attr('type') === 'password';
-        $input.attr('type', is_hidden ? 'text' : 'password');
-        $icon.toggleClass('fa-eye fa-eye-slash');
-    });
-
-    // Generic confirm modal handler
-    $(document).on('click', '[data-confirm]', function (e) {
-        e.preventDefault();
-
-        const $btn = $(this);
-        const url = $btn.data('url') || $btn.attr('href');
-        const message = $btn.data('message') || 'Are you sure?';
-        const title = $btn.data('title') || 'Confirm Action';
-        const btnText = $btn.data('btn-text') || 'Confirm';
-        const btnClass = $btn.data('btn-class') || 'btn-primary';
-
-        // Optional pre-check
-        const preCheck = $btn.data('precheck');
-        if (preCheck) {
-            const error = runPrecheck(preCheck, $btn);
-            if (error) {
-                $('#genericErrorModalMessage').text(error);
-                $('#genericErrorModal').modal('show');
-                return;
-            }
+    // Category form 
+    if ($('#name').length) {
+        // Auto-generate order value based on existing categories
+        if ($('#order').val() === '0' || $('#order').val() === '') {
+            // You could make an AJAX call here to get the next order number
+            // For now, we'll leave it as is
         }
 
-        $('#genericConfirmModalTitle').text(title);
-        $('#genericConfirmModalMessage').text(message);
-        $('#genericConfirmButton')
-            .text(btnText)
-            .attr('href', url)
-            .attr('class', 'btn ' + btnClass);
-        $('#genericConfirmModal').modal('show');
-    });
+        // Form validation for category-specific fields
+        $('input[name="name"]').on('blur keyup', function() {
+            const value = $(this).val().trim();
+            const valid = value.length >= 2 && value.length <= 100;
+            const msg = valid ? '' : 'Category name must be 2-100 characters.';
+            
+            $(this).toggleClass('is-invalid', !valid);
+            $(this).toggleClass('is-valid', valid && value.length > 0);
+            $(this).siblings('.invalid-feedback').text(msg);
+        });
 
-    //  Precheck function
-    function runPrecheck(type, $el) {
-        switch (type) {
-            case 'preventSelfDelete':
-                const userId = parseInt($el.data('user-id'), 10);
-                const currentId = parseInt($el.data('current-id'), 10);
-                if (userId === currentId) {
-                    return $el.data('error') || 'You cannot delete your own account.';
-                }
-                break;
+        $('textarea[name="description"]').on('blur keyup', function() {
+            const value = $(this).val().trim();
+            const valid = value.length <= 1000;
+            const msg = valid ? '' : 'Description must not exceed 1000 characters.';
+            
+            $(this).toggleClass('is-invalid', !valid);
+            $(this).toggleClass('is-valid', valid);
+            $(this).siblings('.invalid-feedback').text(msg);
+        });
 
-            // more checks will be added later
-        }
-        return null;
+        $('input[name="order"]').on('blur keyup', function() {
+            const value = $(this).val();
+            const valid = !isNaN(value) && value >= 0 && value <= 255;
+            const msg = valid ? '' : 'Order must be a number between 0 and 255.';
+            
+            $(this).toggleClass('is-invalid', !valid);
+            $(this).toggleClass('is-valid', valid);
+            $(this).siblings('.invalid-feedback').text(msg);
+        });
     }
-    
 
+    // Enhanced form submission feedback
+    $('form').on('submit', function() {
+        const $submitBtn = $(this).find('button[type="submit"]');
+        const originalText = $submitBtn.html();
+        
+        $submitBtn.prop('disabled', true);
+        $submitBtn.html('<i class="fas fa-spinner fa-spin me-1"></i>Saving...');
+        
+        // Re-enable after a delay (in case of server-side redirect)
+        setTimeout(() => {
+            $submitBtn.prop('disabled', false);
+            $submitBtn.html(originalText);
+        }, 3000);
+    });
+
+    // Confirm modal enhancements for categories
+    $('[data-confirm]').on('click', function(e) {
+        e.preventDefault();
+        
+        const url = $(this).data('url');
+        const message = $(this).data('message');
+        const title = $(this).data('title') || 'Confirm Action';
+        const btnText = $(this).data('btn-text') || 'Confirm';
+        const btnClass = $(this).data('btn-class') || 'btn-danger';
+        
+        // Create or update modal
+        let modal = $('#confirmModal');
+        if (modal.length === 0) {
+            modal = $(`
+                <div class="modal fade" id="confirmModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title"></h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body"></div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <a href="#" class="btn confirm-btn">Confirm</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
+            $('body').append(modal);
+        }
+        
+        modal.find('.modal-title').text(title);
+        modal.find('.modal-body').html(message);
+        modal.find('.confirm-btn').attr('href', url).attr('class', `btn ${btnClass}`).text(btnText);
+        
+        modal.modal('show');
+    });
 });

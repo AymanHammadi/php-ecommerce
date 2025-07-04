@@ -307,3 +307,549 @@ function get_records(
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+/**
+ * Checks if the current request is a POST request.
+ *
+ * @return bool True if the request method is POST, false otherwise.
+ */
+function is_post_request(): bool
+{
+    return $_SERVER['REQUEST_METHOD'] === 'POST';
+}
+
+/**
+ * Gets and validates an ID from request parameters.
+ *
+ * @param string $param The parameter name to get the ID from (default: 'id').
+ * @return int The validated ID, or 0 if not found or invalid.
+ */
+function get_id_from_request(string $param = 'id'): int
+{
+    return isset($_GET[$param]) ? (int)$_GET[$param] : 0;
+}
+
+/**
+ * Shows validation errors in a formatted message.
+ *
+ * @param array $errors Array of validation errors.
+ * @param string $redirect_url URL to redirect to after showing the message.
+ * @param int $delay Delay in seconds before redirect (default: 3).
+ * @return void
+ */
+function show_validation_errors(array $errors, string $redirect_url, int $delay = 3): void
+{
+    global $components;
+    
+    $title = 'Validation Failed';
+    $type = 'error';
+    $message = '<ol>';
+    foreach ($errors as $fieldErrors) {
+        foreach ((array)$fieldErrors as $err) {
+            $message .= '<li class="text-start">' . htmlspecialchars($err) . '</li>';
+        }
+    }
+    $message .= '</ol>';
+
+    $redirect_delay = $delay;
+    include $components . 'message.php';
+}
+
+/**
+ * Shows a success message with optional actions and redirect.
+ *
+ * @param string $title The title of the success message.
+ * @param string $message The message content (optional).
+ * @param array $actions Array of action buttons (optional).
+ * @param string $redirect_url URL to redirect to (optional).
+ * @param int $delay Delay in seconds before redirect (default: 3).
+ * @return void
+ */
+function show_success_message(string $title, string $message = '', array $actions = [], string $redirect_url = '', int $delay = 3): void
+{
+    global $components;
+    
+    $type = 'success';
+    if ($redirect_url) {
+        $redirect_delay = $delay;
+    }
+    include $components . 'message.php';
+}
+
+/**
+ * Shows an error message with optional redirect.
+ *
+ * @param string $message The error message to display.
+ * @param string $redirect_url URL to redirect to (optional).
+ * @param int $delay Delay in seconds before redirect (default: 3).
+ * @return void
+ */
+function show_error_message(string $message, string $redirect_url = '', int $delay = 3): void
+{
+    global $components;
+    
+    $title = 'Error';
+    $type = 'error';
+    if ($redirect_url) {
+        $redirect_delay = $delay;
+    }
+    include $components . 'message.php';
+}
+
+/**
+ * Handles invalid actions by displaying an error message.
+ *
+ * @param string $message Custom error message (optional).
+ * @return void
+ */
+function handle_invalid_action(string $message = 'Invalid action requested.'): void
+{
+    echo "<div class='d-flex flex-column justify-content-center align-content-center container min-vh-100'>
+            <div class='alert alert-danger text-center'>" . htmlspecialchars($message) . "</div>
+          </div>";
+}
+
+/**
+ * Generates action buttons for table rows with edit and delete options.
+ *
+ * @param array $config Configuration array with the following keys:
+ *                     - id: The record ID
+ *                     - edit_url: URL for edit action
+ *                     - delete_url: URL for delete action
+ *                     - delete_confirm_message: Confirmation message for delete
+ *                     - record_name: Name of the record for display in confirmation
+ *                     - edit_text: Text for edit button (default: 'Edit')
+ *                     - delete_text: Text for delete button (default: 'Delete')
+ *                     - additional_buttons: Array of additional button configurations
+ * @return string HTML for the action buttons.
+ */
+function generate_action_buttons(array $config): string
+{
+    $id = $config['id'] ?? 0;
+    $edit_url = $config['edit_url'] ?? '';
+    $delete_url = $config['delete_url'] ?? '';
+    $delete_confirm_message = $config['delete_confirm_message'] ?? 'Are you sure you want to delete this item?';
+    $record_name = $config['record_name'] ?? '';
+    $edit_text = $config['edit_text'] ?? 'Edit';
+    $delete_text = $config['delete_text'] ?? 'Delete';
+    $additional_buttons = $config['additional_buttons'] ?? [];
+
+    $buttons = '';
+
+    // Edit button
+    if ($edit_url) {
+        $buttons .= "<a href=\"{$edit_url}\" class=\"btn btn-outline-primary btn-sm me-1\">
+                        <i class=\"fas fa-edit me-1\"></i>{$edit_text}
+                     </a>";
+    }
+
+    // Delete button
+    if ($delete_url) {
+        $confirm_message = $delete_confirm_message . ($record_name ? " '{$record_name}'?" : '');
+        $buttons .= "<a href=\"$delete_url\"
+                       data-confirm
+                       data-url=\"$delete_url\"
+                       data-message=\"" . htmlspecialchars($confirm_message) . "\"
+                       data-btn-text=\"{$delete_text}\"
+                       data-btn-class=\"btn-danger\"
+                       data-title=\"Delete\"
+                       class=\"btn btn-outline-danger btn-sm\">
+                        <i class=\"fas fa-trash-alt me-1\"></i>{$delete_text}
+                     </a>";
+    }
+
+    // Additional buttons
+    foreach ($additional_buttons as $button) {
+        $buttons .= "<a href=\"{$button['url']}\" class=\"btn {$button['class']} btn-sm me-1\">";
+        if (isset($button['icon'])) {
+            $buttons .= "<i class=\"{$button['icon']} me-1\"></i>";
+        }
+        $buttons .= "{$button['text']}</a>";
+    }
+
+    return $buttons;
+}
+
+/**
+ * Sanitizes and collects form data from POST request.
+ *
+ * @param array $fields Array of field names to collect.
+ * @param array $types Array specifying data types for fields (int, string, bool).
+ * @return array Sanitized form data.
+ */
+function collect_form_data(array $fields, array $types = []): array
+{
+    $data = [];
+    
+    foreach ($fields as $field) {
+        $type = $types[$field] ?? 'string';
+        $value = $_POST[$field] ?? '';
+        
+        switch ($type) {
+            case 'int':
+                $data[$field] = (int) $value;
+                break;
+            case 'bool':
+                $data[$field] = (bool) $value;
+                break;
+            case 'string':
+            default:
+                $data[$field] = trim((string) $value);
+                break;
+        }
+    }
+    
+    return $data;
+}
+
+/**
+ * Renders a generic management table with pagination and actions.
+ *
+ * @param array $config Configuration array with the following keys:
+ *                     - title: Page title
+ *                     - add_url: URL for add new button
+ *                     - add_text: Text for add button (default: 'Add New')
+ *                     - data: Array of records to display
+ *                     - columns: Array of column configurations
+ *                     - no_data_message: Message when no data (default: 'No records found')
+ * @return void
+ */
+function render_management_table(array $config): void
+{
+    $title = $config['title'] ?? 'Manage Records';
+    $add_url = $config['add_url'] ?? '';
+    $add_text = $config['add_text'] ?? 'Add New';
+    $data = $config['data'] ?? [];
+    $columns = $config['columns'] ?? [];
+    $no_data_message = $config['no_data_message'] ?? 'No records found';
+    ?>
+    <div class="container py-5 min-vh-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="mb-0"><?= htmlspecialchars($title) ?></h2>
+            <?php if ($add_url): ?>
+                <a href="<?= htmlspecialchars($add_url) ?>" class="btn btn-success">+ <?= htmlspecialchars($add_text) ?></a>
+            <?php endif; ?>
+        </div>
+        <div class="card content-card">
+            <div class="card-header bg-transparent border-0 pb-0">
+                <h5 class="section-header mb-0"><?= htmlspecialchars($title) ?></h5>
+            </div>
+            <div class="card-body pt-0">
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr class="table-header">
+                                    <?php foreach ($columns as $column): ?>
+                                        <th><?= htmlspecialchars($column['label']) ?></th>
+                                    <?php endforeach; ?>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($data)): ?>
+                                    <tr>
+                                        <td colspan="<?= count($columns) ?>" class="text-center text-muted py-4">
+                                            <?= htmlspecialchars($no_data_message) ?>
+                                        </td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach ($data as $row): ?>
+                                        <tr>
+                                            <?php foreach ($columns as $column): ?>
+                                                <td>
+                                                    <?php
+                                                    if (isset($column['callback']) && is_callable($column['callback'])) {
+                                                        echo $column['callback']($row, $column['field']);
+                                                    } else {
+                                                        echo htmlspecialchars($row[$column['field']] ?? '');
+                                                    }
+                                                    ?>
+                                                </td>
+                                            <?php endforeach; ?>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php
+}
+
+/**
+ * Generic function to get a single record by ID from any table.
+ *
+ * @param string $table_name The name of the table to query.
+ * @param string $id_column The name of the ID column.
+ * @param int $id The ID value to search for.
+ * @param array $columns Columns to select (default: ['*'] for all columns).
+ * @return array|null The record as an associative array, or null if not found.
+ * @throws InvalidArgumentException If invalid parameters are provided.
+ * @throws PDOException If the database query fails.
+ */
+function get_record_by_id(string $table_name, string $id_column, int $id, array $columns = ['*']): ?array
+{
+    global $pdo;
+
+    // Validate inputs
+    if (!preg_match('/^[a-zA-Z0-9_]+$/', $table_name)) {
+        throw new InvalidArgumentException("Invalid table name: $table_name");
+    }
+    if (!preg_match('/^[a-zA-Z0-9_]+$/', $id_column)) {
+        throw new InvalidArgumentException("Invalid column name: $id_column");
+    }
+
+    // Validate and sanitize columns
+    $select_columns = [];
+    foreach ($columns as $column) {
+        if ($column !== '*' && !preg_match('/^[a-zA-Z0-9_]+$/', $column)) {
+            throw new InvalidArgumentException("Invalid column name: $column");
+        }
+        $select_columns[] = $column === '*' ? '*' : "`$column`";
+    }
+    $select_clause = implode(', ', $select_columns);
+
+    $stmt = $pdo->prepare("SELECT $select_clause FROM `$table_name` WHERE `$id_column` = ? LIMIT 1");
+    $stmt->execute([$id]);
+    
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result ?: null;
+}
+
+/**
+ * Generic function to insert a record into any table.
+ *
+ * @param string $table_name The name of the table to insert into.
+ * @param array $data Associative array of column => value pairs.
+ * @param array $exclude_columns Columns to exclude from insertion (e.g., auto-increment IDs).
+ * @return bool True if the insertion was successful, false otherwise.
+ * @throws InvalidArgumentException If invalid parameters are provided.
+ * @throws PDOException If the database query fails.
+ */
+function insert_record(string $table_name, array $data, array $exclude_columns = []): bool
+{
+    global $pdo;
+
+    // Validate table name
+    if (!preg_match('/^[a-zA-Z0-9_]+$/', $table_name)) {
+        throw new InvalidArgumentException("Invalid table name: $table_name");
+    }
+
+    // Filter out excluded columns
+    $filtered_data = array_diff_key($data, array_flip($exclude_columns));
+
+    if (empty($filtered_data)) {
+        throw new InvalidArgumentException('No valid data provided for insertion.');
+    }
+
+    // Validate column names
+    foreach (array_keys($filtered_data) as $column) {
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $column)) {
+            throw new InvalidArgumentException("Invalid column name: $column");
+        }
+    }
+
+    $columns = array_keys($filtered_data);
+    $placeholders = array_map(fn($col) => ":$col", $columns);
+    
+    $columns_clause = '`' . implode('`, `', $columns) . '`';
+    $placeholders_clause = implode(', ', $placeholders);
+
+    $query = "INSERT INTO `$table_name` ($columns_clause) VALUES ($placeholders_clause)";
+    
+    $stmt = $pdo->prepare($query);
+    
+    // Bind parameters
+    foreach ($filtered_data as $column => $value) {
+        $stmt->bindValue(":$column", $value);
+    }
+
+    return $stmt->execute();
+}
+
+/**
+ * Generic function to update a record in any table.
+ *
+ * @param string $table_name The name of the table to update.
+ * @param array $data Associative array of column => value pairs to update.
+ * @param string $id_column The name of the ID column for the WHERE clause.
+ * @param int $id The ID value for the WHERE clause.
+ * @param array $exclude_columns Columns to exclude from update.
+ * @return bool True if the update was successful, false otherwise.
+ * @throws InvalidArgumentException If invalid parameters are provided.
+ * @throws PDOException If the database query fails.
+ */
+function update_record(string $table_name, array $data, string $id_column, int $id, array $exclude_columns = []): bool
+{
+    global $pdo;
+
+    // Validate table and column names
+    if (!preg_match('/^[a-zA-Z0-9_]+$/', $table_name)) {
+        throw new InvalidArgumentException("Invalid table name: $table_name");
+    }
+    if (!preg_match('/^[a-zA-Z0-9_]+$/', $id_column)) {
+        throw new InvalidArgumentException("Invalid ID column name: $id_column");
+    }
+
+    // Filter out excluded columns and ID column
+    $exclude_columns[] = $id_column; // Always exclude the ID column from updates
+    $filtered_data = array_diff_key($data, array_flip($exclude_columns));
+
+    if (empty($filtered_data)) {
+        throw new InvalidArgumentException('No valid data provided for update.');
+    }
+
+    // Validate column names
+    foreach (array_keys($filtered_data) as $column) {
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $column)) {
+            throw new InvalidArgumentException("Invalid column name: $column");
+        }
+    }
+
+    $set_clauses = [];
+    foreach (array_keys($filtered_data) as $column) {
+        $set_clauses[] = "`$column` = :$column";
+    }
+    
+    $set_clause = implode(', ', $set_clauses);
+    $query = "UPDATE `$table_name` SET $set_clause WHERE `$id_column` = :id";
+    
+    $stmt = $pdo->prepare($query);
+    
+    // Bind parameters
+    foreach ($filtered_data as $column => $value) {
+        $stmt->bindValue(":$column", $value);
+    }
+    $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+
+    return $stmt->execute();
+}
+
+/**
+ * Generic function to handle approve/disapprove operations.
+ *
+ * @param string $table_name The name of the table to update.
+ * @param string $id_column The name of the ID column.
+ * @param int $id The ID of the record to update.
+ * @param string $status_column The name of the status column to update.
+ * @param int $status_value The new status value (typically 1 for approved, 0 for disapproved).
+ * @return bool True if the operation was successful, false otherwise.
+ * @throws InvalidArgumentException If invalid parameters are provided.
+ * @throws PDOException If the database query fails.
+ */
+function update_status(string $table_name, string $id_column, int $id, string $status_column, int $status_value): bool
+{
+    global $pdo;
+
+    // Validate table and column names
+    if (!preg_match('/^[a-zA-Z0-9_]+$/', $table_name)) {
+        throw new InvalidArgumentException("Invalid table name: $table_name");
+    }
+    if (!preg_match('/^[a-zA-Z0-9_]+$/', $id_column)) {
+        throw new InvalidArgumentException("Invalid ID column name: $id_column");
+    }
+    if (!preg_match('/^[a-zA-Z0-9_]+$/', $status_column)) {
+        throw new InvalidArgumentException("Invalid status column name: $status_column");
+    }
+
+    $stmt = $pdo->prepare("UPDATE `$table_name` SET `$status_column` = ? WHERE `$id_column` = ?");
+    return $stmt->execute([$status_value, $id]);
+}
+
+/**
+ * Validates and sanitizes a slug for URL-friendly use.
+ *
+ * @param string $slug The slug to validate and sanitize.
+ * @param int $max_length Maximum length for the slug (default: 255).
+ * @return string The sanitized slug.
+ */
+function sanitize_slug(string $slug, int $max_length = 255): string
+{
+    // Convert to lowercase
+    $slug = strtolower($slug);
+    
+    // Remove special characters and replace with hyphens
+    $slug = preg_replace('/[^a-z0-9\-_]/', '-', $slug);
+    
+    // Remove multiple consecutive hyphens
+    $slug = preg_replace('/-+/', '-', $slug);
+    
+    // Remove leading and trailing hyphens
+    $slug = trim($slug, '-');
+    
+    // Truncate to max length
+    if (strlen($slug) > $max_length) {
+        $slug = substr($slug, 0, $max_length);
+        $slug = rtrim($slug, '-');
+    }
+    
+    return $slug;
+}
+
+/**
+ * Checks if a slug is unique in a given table.
+ *
+ * @param string $table_name The name of the table to check.
+ * @param string $slug_column The name of the slug column.
+ * @param string $slug The slug to check for uniqueness.
+ * @param string $id_column The name of the ID column (for excluding current record during updates).
+ * @param int|null $exclude_id The ID to exclude from the check (for updates).
+ * @return bool True if the slug is unique, false otherwise.
+ * @throws InvalidArgumentException If invalid parameters are provided.
+ * @throws PDOException If the database query fails.
+ */
+function is_slug_unique(string $table_name, string $slug_column, string $slug, string $id_column = '', ?int $exclude_id = null): bool
+{
+    global $pdo;
+
+    // Validate table and column names
+    if (!preg_match('/^[a-zA-Z0-9_]+$/', $table_name)) {
+        throw new InvalidArgumentException("Invalid table name: $table_name");
+    }
+    if (!preg_match('/^[a-zA-Z0-9_]+$/', $slug_column)) {
+        throw new InvalidArgumentException("Invalid slug column name: $slug_column");
+    }
+    if ($exclude_id !== null && !preg_match('/^[a-zA-Z0-9_]+$/', $id_column)) {
+        throw new InvalidArgumentException("Invalid ID column name: $id_column");
+    }
+
+    $query = "SELECT COUNT(*) FROM `$table_name` WHERE `$slug_column` = ?";
+    $params = [$slug];
+
+    if ($exclude_id !== null && !empty($id_column)) {
+        $query .= " AND `$id_column` != ?";
+        $params[] = $exclude_id;
+    }
+
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($params);
+
+    return (int) $stmt->fetchColumn() === 0;
+}
+
+/**
+ * Generates a unique slug by appending numbers if necessary.
+ *
+ * @param string $table_name The name of the table to check.
+ * @param string $slug_column The name of the slug column.
+ * @param string $base_slug The base slug to make unique.
+ * @param string $id_column The name of the ID column (for excluding current record during updates).
+ * @param int|null $exclude_id The ID to exclude from the check (for updates).
+ * @return string A unique slug.
+ */
+function generate_unique_slug(string $table_name, string $slug_column, string $base_slug, string $id_column = '', ?int $exclude_id = null): string
+{
+    $slug = sanitize_slug($base_slug);
+    $original_slug = $slug;
+    $counter = 1;
+
+    while (!is_slug_unique($table_name, $slug_column, $slug, $id_column, $exclude_id)) {
+        $slug = $original_slug . '-' . $counter;
+        $counter++;
+    }
+
+    return $slug;
+}

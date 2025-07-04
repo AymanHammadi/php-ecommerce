@@ -12,10 +12,10 @@
             <!-- Nav Links -->
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item"><a class="nav-link " href="/admin"><?= t('admin.nav.home') ?></a></li>
-                <li class="nav-item"><a class="nav-link " href="#"><?= t('admin.nav.dashboard') ?></a></li>
+                <li class="nav-item"><a class="nav-link " href=""><?= t('admin.nav.dashboard') ?></a></li>
                 <li class="nav-item"><a class="nav-link " href="#"><?= t('admin.nav.orders') ?></a></li>
                 <li class="nav-item"><a class="nav-link " href="#"><?= t('admin.nav.products') ?></a></li>
-                <li class="nav-item"><a class="nav-link " href="#"><?= t('admin.nav.categories') ?></a></li>
+                <li class="nav-item"><a class="nav-link " href="categories"><?= t('admin.nav.categories') ?></a></li>
                 <li class="nav-item"><a class="nav-link " href="users"><?= t('admin.nav.users') ?></a></li>
             </ul>
 
